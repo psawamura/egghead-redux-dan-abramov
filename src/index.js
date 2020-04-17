@@ -1,19 +1,29 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
-import expect from 'expect';
-import deepFreeze from 'deep-freeze';
+import { App } from './App';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import reducers from './reducers/index';
 
-// ReactDOM.render(<App />, document.getElementById('root'));
+// import * as serviceWorker from './serviceWorker';
+// import expect from 'expect';
+// import deepFreeze from 'deep-freeze';
+ const store = createStore(reducers)
+
+ReactDOM.render(
+    <Provider store={store}>
+        <App />
+    </Provider>,
+    document.getElementById('root')
+);
 
 // // If you want your app to work offline and load faster, you can change
 // // unregister() to register() below. Note this comes with some pitfalls.
 // // Learn more about service workers: http://bit.ly/CRA-PWA
 // serviceWorker.unregister();
 
-import { createStore, combineReducers } from 'redux';
+// import { createStore } from 'redux';
 
 /// createStore from scratch        
 // const createStore = (reducer) => {
@@ -132,249 +142,245 @@ import { createStore, combineReducers } from 'redux';
 
 // ############  TESTS ################# //
 
-const testAddToDo = () => {
-    const stateBefore = [];
-    const stateAfter = [
-        {
-            id: 0,
-            text: 'Learn Redux',
-            completed: false
-        }
-    ];
-    const action = {
-        type: 'ADD_TODO',
-        id: 0,
-        text: 'Learn Redux'
-    };
-
-    deepFreeze(stateBefore);
-    deepFreeze(action);
-
-    expect(
-        todos(stateBefore, action)
-    ).toEqual(stateAfter);
-};
-
-const testToggleTodo = () => {
-    const stateBefore = [
-        {
-            id: 0,
-            text: 'Blah',
-            completed: false
-        }
-    ];
-
-    const stateAfter = [
-        {
-            id: 0,
-            text: 'Blah',
-            completed: true
-        }
-    ];
-
-    const action = {
-        type: 'TOGGLE_TODO',
-        id: 0
-    };
-
-    deepFreeze(stateBefore);
-    deepFreeze(action);
-
-    expect(
-        todos(stateBefore, action)
-    ).toEqual(stateAfter);
-};
-
-// ############ TO DO LIST ################## //
-
-const todo = (state, action) => {
-    switch (action.type) {  
-        case 'ADD_TODO':
-            return {
-                    id: action.id,
-                    text: action.text,
-                    completed: false
-            };
-            
-        case 'TOGGLE_TODO':
-            if (state.id !== action.id) {
-                return state;
-            }
-            return {
-                ...state,
-                completed: !state.completed
-            }
-        default:
-            return state;
-    }
-}
-
-const todos = (state = [], action) => {
-    switch (action.type) {  
-        case 'ADD_TODO':
-            return [
-                ...state, 
-                todo(undefined, action)
-            ];
-        case 'TOGGLE_TODO':
-            return state.map(t => todo(t, action));
-        default:
-            return state;
-    }
-};
-
-const visibilityFilter = (
-    state = 'SHOW_ALL',
-    action
-) => {
-    switch (action.type) {
-        case 'SET_VISIIBILITY_FILTER':
-            return action.filter;
-        default:
-            return state;
-    }
-}
-
-const todoApp = combineReducers({
-    todos,
-    visibilityFilter
-});
-
-// const todoApp = (state = {}, action) => {
-//     return {
-//         todos: todos(
-//             state.todos,
-//             action
-//         ),
-//         visibilityFilter: visibilityFilter(
-//             state.visibilityFilter,
-//             action
-//         )
+// const testAddToDo = () => {
+//     const stateBefore = [];
+//     const stateAfter = [
+//         {
+//             id: 0,
+//             text: 'Learn Redux',
+//             completed: false
+//         }
+//     ];
+//     const action = {
+//         type: 'ADD_TODO',
+//         id: 0,
+//         text: 'Learn Redux'
 //     };
+
+//     deepFreeze(stateBefore);
+//     deepFreeze(action);
+
+//     expect(
+//         todos(stateBefore, action)
+//     ).toEqual(stateAfter);
 // };
 
-testAddToDo();  
-testToggleTodo();
-console.log('ALL TESTS PASSED')
+// const testToggleTodo = () => {
+//     const stateBefore = [
+//         {
+//             id: 0,
+//             text: 'Blah',
+//             completed: false
+//         }
+//     ];
 
-const store = createStore(todoApp);
+//     const stateAfter = [
+//         {
+//             id: 0,
+//             text: 'Blah',
+//             completed: true
+//         }
+//     ];
 
-const FilterLink = ({
-    filter,
-    children
-}) => {
-    return (
-        <a href='#'
-           onClick= {e => {
-               e.preventDefault();
-               store.dispatch({
-                   type:'SET_VISIBILITY_FILTER',
-                   filter
-               });
-               console.log('filter', filter)
-               console.log(store.getState())
-           }}
-        >
-        {children}
-        </a>
-    );
-};
+//     const action = {
+//         type: 'TOGGLE_TODO',
+//         id: 0
+//     };
 
-const getVisibleTodos = (
-    todos,
-    filter
-) => {
-    switch (filter) {
-        case 'SHOW_ALL':
-            return todos;
-        case 'SHOW_COMPLETED':
-            return todos.filter(
-                t => t.completed
-            );
-        case 'SHOW_ACTIVE':
-            return todos.filter(
-                t => !t.completed
-            );
-    }
-}
+//     deepFreeze(stateBefore);
+//     deepFreeze(action);
 
-let nextTodoId = 0;
+//     expect(
+//         todos(stateBefore, action)
+//     ).toEqual(stateAfter);
+// };
 
-class TodoApp extends Component {
-    render() {
-        const visibleTodos = getVisibleTodos(
-            this.props.todos,
-            this.props.visibilityFilter
-        );
-        console.log('visible todos', visibleTodos)
-        return (
-            <div>
-                <input ref={node => {
-                    this.input = node;
-                }}/>
-                <button onClick={() => {
-                    store.dispatch({
-                        type: 'ADD_TODO',
-                        text: this.input.value,
-                        id: nextTodoId++
-                    });
-                    this.input.value = '';
-                }}>
-                Add To Do
-                </button>
-                <ul>
-                    {visibleTodos.map(todo => 
-                        <li key={todo.id}
-                            onClick={() => {
-                                store.dispatch({
-                                    type: 'TOGGLE_TODO',
-                                    id: todo.id
-                                });
-                            }}
-                            style={{
-                                textDecoration:
-                                    todo.completed ? 
-                                        'line-through' :
-                                        'none'
-                            }}>
-                            {todo.text}
-                        </li>
-                    )}
-                </ul>
-                <p>
-                    Show:
-                    {'  '}
-                    <FilterLink
-                        filter='SHOW_ALL'
-                    >
-                        All
-                    </FilterLink>
-                    {'  '}
-                    <FilterLink
-                        filter='SHOW_ACTIVE'
-                    >
-                        Active
-                    </FilterLink>
-                    {'  '}
-                    <FilterLink
-                        filter='SHOW_COMPLETED'
-                    >
-                        Completed
-                    </FilterLink>
-                </p>
-            </div>
-        );
-    }
-}
+// // ############ TO DO LIST ################## //
 
-const render = () => {
-    ReactDOM.render(
-        <TodoApp 
-            {...store.getState()}
-        />,
-        document.getElementById('root')
-    );
-};
+// const todo = (state, action) => {
+//     switch (action.type) {  
+//         case 'ADD_TODO':
+//             return {
+//                     id: action.id,
+//                     text: action.text,
+//                     completed: false
+//             };
+            
+//         case 'TOGGLE_TODO':
+//             if (state.id !== action.id) {
+//                 return state;
+//             }
+//             return {
+//                 ...state,
+//                 completed: !state.completed
+//             }
+//         default:
+//             return state;
+//     }
+// }
 
-store.subscribe(render);
-render();
+// const todos = (state = [], action) => {
+//     switch (action.type) {  
+//         case 'ADD_TODO':
+//             return [
+//                 ...state, 
+//                 todo(undefined, action)
+//             ];
+//         case 'TOGGLE_TODO':
+//             return state.map(t => todo(t, action));
+//         default:
+//             return state;
+//     }
+// };
+
+// const visibilityFilter = (
+//     state = 'SHOW_ALL',
+//     action
+// ) => {
+//     switch (action.type) {
+//         case 'SET_VISIIBILITY_FILTER':
+//             return action.filter;
+//         default:
+//             return state;
+//     }
+// }
+
+// const todoApp = combineReducers({
+//     todos,
+//     visibilityFilter
+// });
+
+// // const todoApp = (state = {}, action) => {
+// //     return {
+// //         todos: todos(
+// //             state.todos,
+// //             action
+// //         ),
+// //         visibilityFilter: visibilityFilter(
+// //             state.visibilityFilter,
+// //             action
+// //         )
+// //     };
+// // };
+
+// // testAddToDo();  
+// // testToggleTodo();
+// // console.log('ALL TESTS PASSED')
+
+// const store = createStore(todoApp);
+
+// const FilterLink = ({
+//     filter,
+//     children
+// }) => {
+//     return (
+//         <a href='#'
+//            onClick= {e => {
+//                e.preventDefault();
+//                store.dispatch({
+//                    type:'SET_VISIBILITY_FILTER',
+//                    filter
+//                });
+//                console.log('filter', filter)
+//                console.log(store.getState())
+//            }}
+//         >
+//         {children}
+//         </a>
+//     );
+// };
+
+// const getVisibleTodos = (
+//     todos,
+//     filter
+// ) => {
+//     switch (filter) {
+//         case 'SHOW_ALL':
+//             return todos;
+//         case 'SHOW_COMPLETED':
+//             return todos.filter(
+//                 t => t.completed
+//             );
+//         case 'SHOW_ACTIVE':
+//             return todos.filter(
+//                 t => !t.completed
+//             );
+//     }
+// }
+
+// let nextTodoId = 0;
+
+// class TodoApp extends Component {
+//     render() {
+//         const visibleTodos = getVisibleTodos(
+//             this.props.todos,
+//             this.props.visibilityFilter
+//         );
+//         console.log('visible todos', visibleTodos)
+//         return (
+//             <div>
+//                 <input ref={node => {
+//                     this.input = node;
+//                 }}/>
+//                 <button onClick={() => {
+//                     store.dispatch({
+//                         type: 'ADD_TODO',
+//                         text: this.input.value,
+//                         id: nextTodoId++
+//                     });
+//                     this.input.value = '';
+//                 }}>
+//                 Add To Do
+//                 </button>
+//                 <ul>
+//                     {visibleTodos.map(todo => 
+//                         <li key={todo.id}
+//                             onClick={() => {
+//                                 store.dispatch({
+//                                     type: 'TOGGLE_TODO',
+//                                     id: todo.id
+//                                 });
+//                             }}
+//                             style={{
+//                                 textDecoration:
+//                                     todo.completed ? 
+//                                         'line-through' :
+//                                         'none'
+//                             }}>
+//                             {todo.text}
+//                         </li>
+//                     )}
+//                 </ul>
+//                 <p>
+//                     Show:
+//                     {'  '}
+//                     <FilterLink
+//                         filter='SHOW_ALL'
+//                     >
+//                         All
+//                     </FilterLink>
+//                     {'  '}
+//                     <FilterLink
+//                         filter='SHOW_ACTIVE'
+//                     >
+//                         Active
+//                     </FilterLink>
+//                     {'  '}
+//                     <FilterLink
+//                         filter='SHOW_COMPLETED'
+//                     >
+//                         Completed
+//                     </FilterLink>
+//                 </p>
+//             </div>
+//         );
+//     }
+// }
+
+    // ReactDOM.render(
+    //     <App/>,
+    //     document.getElementById('root')
+    // );
+
+// store.subscribe(render);
+// render();
